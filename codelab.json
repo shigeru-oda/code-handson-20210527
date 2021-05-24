@@ -1,0 +1,27 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-05-24T16:30:03+09:00",
+  "id": "jawsug_bgnr_37",
+  "duration": 100,
+  "title": "JAWS-UG 初心者支部#37 codeシリーズハンズオン",
+  "summary": "JAWS-UG 初心者支部#37 codeシリーズハンズオン",
+  "source": "jawsug_bgnr_37.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "jawsug_bgnr",
+    "codelab",
+    "markdown"
+  ],
+  "tags": [
+    "jawsug_bgnr"
+  ],
+  "feedback": "https://jawsug-bgnr.connpass.com/event/212953/",
+  "ga": "XXXXXXXX",
+  "url": "jawsug_bgnr_37"
+}

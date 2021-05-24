@@ -1,0 +1,681 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>JAWS-UG 初心者支部#37 codeシリーズハンズオン</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid="XXXXXXXX"
+                  id="jawsug_bgnr_37"
+                  title="JAWS-UG 初心者支部#37 codeシリーズハンズオン"
+                  environment="web"
+                  feedback-link="https://jawsug-bgnr.connpass.com/event/212953/">
+    
+      <google-codelab-step label="ハンズオンについての前提" duration="5">
+        <h2 is-upgraded>ハンズオンについての前提</h2>
+<ul>
+<li>AWSコンソールを使うブラウザはFirefox or Chromeで実施をお願いします。</li>
+<li>AdministratorAccessポリシーが追加されたIAMユーザーで作業をお願いします。</li>
+<li>リージョンは東京リージョンを使用します。</li>
+<li>費用は数10円前後要します。</li>
+<li>ハンズオンについての注意点について可能な限り配慮しますが、補償・保証する物ではございません。</li>
+<li>VPCを新規作成します、１リージョンに５つ以上は作成できないため不要な物は事前に削除をお願いします。</li>
+</ul>
+<h2 is-upgraded>構成図</h2>
+<p>はじめにCodeStarを利用したCodePipelineの流れを作成します。<br> その後、個別にAWSサービスを組み合わせたCodePipelineの流れを作成します。<br><img src="img/beecfa2597cd4dbe.png"></p>
+<h2 is-upgraded>AWSサービスの説明</h2>
+<p><strong>Cloud9</strong></p>
+<ul>
+<li>ブラウザのみでコードを記述、実行、デバッグできるクラウドベースの統合開発環境 (IDE)</li>
+<li>JavaScript、Python、PHP などの一般的なプログラム言語に不可欠なツールがあらかじめパッケージ化されている</li>
+</ul>
+<p><strong>CodeCommit</strong></p>
+<ul>
+<li>Git ベースのリポジトリをセキュアにホストする完全マネージド型のソース管理サービス</li>
+<li>CodeCommit を使用して、ソースコードからバイナリまですべてのものをセキュアに保存可能</li>
+</ul>
+<p><strong>CodeBuild</strong></p>
+<ul>
+<li>ソースコードをコンパイルし、テストを実行し、デプロイ可能なソフトウェアパッケージを作成できる完全マネージド型のビルドサービス</li>
+<li>ビルドサーバーのプロビジョニング、管理、スケーリングが不要</li>
+</ul>
+<p><strong>CodeDeploy</strong></p>
+<ul>
+<li>Amazon EC2、AWS Fargate、AWS Lambda、オンプレミスで実行されるサーバーなどへデプロイを自動化</li>
+<li>新しい機能をすばやく簡単にリリース可能</li>
+</ul>
+<p><strong>CodePipline</strong></p>
+<ul>
+<li>完全マネージド型の継続的デリバリーサービスで、素早く確実性のあるアプリケーションとインフラストラクチャのアップデートのための、パイプラインのリリースを自動化</li>
+<li>定義したリリースモデルに基づき、コードチェンジがあった場合のフェーズの構築、テスト、デプロイを自動化</li>
+</ul>
+<p><strong>CodeStar</strong></p>
+<ul>
+<li>アプリケーションを迅速に開発および構築して AWS にデプロイ可能</li>
+<li>統合されたユーザーインターフェイスを備えているため、ソフトウェア開発アクティビティを 1 つの場所で簡単に管理可能</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="VPC" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → VPC → 「VPCウィザードを起動」ボタン押下</p>
+<h2 is-upgraded>2.VPC設定の選択</h2>
+<p>「１個のパブリックサブネットを持つVPC」を選び「選択」ボタンを押下</p>
+<p class="image-container"><img src="img/d9eac74f1826a7ed.png"></p>
+<h2 is-upgraded>3.1 個のパブリックサブネットを持つ VPC</h2>
+<p>以下を設定し、「VPCの作成」ボタンを押下</p>
+<ul>
+<li>VPC名:code-handson<br></li>
+<li>サブネット名:code-handson<br></li>
+</ul>
+<p class="image-container"><img src="img/9f62cf0f407f0fe2.png"></p>
+<h2 is-upgraded>4.VPC が正常に作成されました</h2>
+<p>正常終了メッセージが表示されます。<br> 正常終了以外の場合はVPCが既に5つ作成されていると思われます。</p>
+<ul>
+<li>削除して再実行</li>
+<li>既存でパブリックサブネットを保有しているVPCを利用</li>
+</ul>
+<p>のどちらをお願いします。</p>
+<p class="image-container"><img src="img/8be0ecd17159d0b4.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="キーペア" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → EC2 → 左ウィンドウからキーペアを選択 → 「キーペアを作成」ボタンを押下</p>
+<h2 is-upgraded>2.キーペアを作成</h2>
+<p>以下を設定し、「キーペアを作成」ボタンを押下</p>
+<ul>
+<li>名前:code-handson<br></li>
+</ul>
+<p>code-handson.pemがダウンロードされますが、ハンズオンでは利用しないので、放置して大丈夫です。</p>
+<p class="image-container"><img src="img/9469c698b0214eb.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CodeStar" duration="10">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → CodeStar → 「プロジェクトの作成」ボタンを押下</p>
+<h2 is-upgraded>2.プロジェクトテンプレートを選択</h2>
+<p>2ページ目のHTMLを選択して、「Next」ボタンを押下</p>
+<p class="image-container"><img src="img/c8d1f5b82650f947.png"></p>
+<h2 is-upgraded>3.プロジェクトの設定</h2>
+<p>以下を設定し、「Next」ボタンを押下</p>
+<ul>
+<li>プロジェクト名:code-handson</li>
+<li>プロジェクトID:code-handson</li>
+<li>リポジトリプロバイダーを選択する:CodeCommit</li>
+<li>リポジトリ名:code-handson</li>
+<li>インスタンスタイプ:t2.micro</li>
+<li>VPC:先ほど作成したVPC(タグがcode-handson)</li>
+<li>サブネット:先ほど作成したサブネット(タグがcode-handson)</li>
+<li>キーペア:code-handson</li>
+<li>私は、プライベートキーファイルにアクセスできることを認めます:ON</li>
+</ul>
+<p class="image-container"><img src="img/5e2d9b9ed7dbaa99.png"><img src="img/e8585f1ec7b03124.png"></p>
+<h2 is-upgraded>4.レビュー</h2>
+<p>内容を確認した上で「プロジェクト」の作成ボタン押下<br><img src="img/72241564b69352ab.png"></p>
+<h2 is-upgraded>5.しばし待機（約5分）</h2>
+<p>興味があれば、CloudFormationを確認下さい。<br> CodeStarから関連するAWSサービスが立ち上がってくるのが確認することができます。<br> 5分立っても「アプリケーションの表示」がアクティブにならない場合にはブラウザの再読み込みをしてください。</p>
+<h2 is-upgraded>6.アプリケーションの表示</h2>
+<p>CodeStarの画面の右上にある「アプリケーションの表示」ボタンを押下<br> EC2上で稼働するWEBサイトが表示されます。<br> WEBサイトのアドレスは今後も行いますので、メモに取っておいてください。<br><img src="img/49da7dcac8d43a03.png"> ↓<br><img src="img/fb492bc00dd963fd.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="AWS Cloud9" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → CodeStar → プロジェクト → code-handson → 概要TAB → 「AWS Cloud9の設定」ボタン押下</p>
+<h2 is-upgraded>2.AWS Cloud9 環境の作成</h2>
+<p>以下を設定し、「環境の作成」ボタンを押下</p>
+<ul>
+<li>インスタンスタイプ:t2.micro</li>
+<li>VPC:先ほど作成したVPC(タグがcode-handson)</li>
+<li>サブネット:先ほど作成したサブネット(タグがcode-handson)</li>
+<li>環境名:code-handson</li>
+<li>コスト制約の設定:30分後</li>
+</ul>
+<p class="image-container"><img src="img/874b276494ec1a2b.png"></p>
+<h2 is-upgraded>3.しばし待機（約３分）</h2>
+<p>興味があれば、CloudFormationを確認下さい。<br> CodeStarからCloud9が立ち上がってくるのが確認することができます。<br> 3分立っても「Open IDE」が表示されないブラウザの再読み込みをしてください。</p>
+<h2 is-upgraded>4.画面遷移</h2>
+<p>CodeStar → プロジェクト → code-handson → IDETAB → 「Open IDE」ボタンを押下<br> Cloud9がCodeCommitへのgit連携がセッティングされた状態で起動されます。<br><img src="img/f43285b8f0368896.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CodeStarの画面構成確認" duration="5">
+        <h2 is-upgraded>1.概要 TAB</h2>
+<p>プロジェクトのアクティビティを表示<br><img src="img/f5acdaa27d22a897.png"></p>
+<h2 is-upgraded>2.IDE TAB</h2>
+<p>プロジェクトコードにアクセス方法を紹介<br> 今回はCloud9経由でアクセス<br><img src="img/7daf0a9cc8953891.png"></p>
+<h2 is-upgraded>3.リポジトリ TAB</h2>
+<p>リポジトリ（CodeCommit）のアクティビティ表示<br><img src="img/e39771be4bd3fe6e.png"></p>
+<h2 is-upgraded>4.パイプライン TAB</h2>
+<p>パイプラインのアクティビティ表示<br><img src="img/a9d9d83ae5f8797e.png"></p>
+<h2 is-upgraded>5.モニタリング TAB</h2>
+<p>プロジェクトが稼働しているEC2アクティビティ表示<br><img src="img/9415e2e481f12626.png"></p>
+<h2 is-upgraded>6.問題 TAB</h2>
+<p>問題追跡およびプロジェクト管理ツールとして、Jiraと連携<br><img src="img/f29fb1e5890ff4e8.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Cloud9でWEBサイトを変更させる" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → Cloud9 → code-handson → 「Open IDE」ボタン押下</p>
+<h2 is-upgraded>2.index.htmlを開く</h2>
+<p>/home/ec2-user/environment/code-handson/webpage/index.htmlを開きます。<br> ダブルクリックで編集可能になります。<br><img src="img/e5e3824ab7643d51.png"></p>
+<h2 is-upgraded>3.index.htmlを変更</h2>
+<p>61行目の「Congratulations!」を別の値に変更します。<br> 「code-handson!」に変更し、ヘッダのFile⇨Saveで保存。</p>
+<p><strong>変更前</strong></p>
+<pre><code>&lt;div class=&#34;text&#34;&gt;
+    &lt;h1&gt;Congratulations!&lt;/h1&gt;
+    &lt;h2&gt;You just created an HTML5 web application&lt;/h2&gt;
+&lt;/div&gt;
+</code></pre>
+<p><strong>変更後</strong></p>
+<pre><code>&lt;div class=&#34;text&#34;&gt;
+    &lt;h1&gt;code-handson!&lt;/h1&gt;
+    &lt;h2&gt;You just created an HTML5 web application&lt;/h2&gt;
+&lt;/div&gt;
+</code></pre>
+<h2 is-upgraded>4.変更内容をCodeCommitへ反映</h2>
+<p>変更内容をCodeCommitへ範囲します。<br> git操作が出来る人はconfig設定は任意に変更下さい、以下内容をCopy&amp;PasteでもOKです。</p>
+<pre><code>cd ~/environment/code-handson/
+git config --global user.name &#34;Your Name&#34;
+git config --global user.email you@example.com
+git add .
+git commit -m &#34;first commit&#34;
+git push
+</code></pre>
+<h2 is-upgraded>5.画面遷移</h2>
+<p>マネージメントコンソール → CodeStar → プロジェクト → code-handson → パイプラインTAB<br> git pushをトリガーにCodePipelineが稼働し、<br> Source、Build、Deployが正常終了していることを確認下さい</p>
+<p class="image-container"><img src="img/a1b08213a649e240.png"><img src="img/e5bc843b5eb21f10.png"></p>
+<h2 is-upgraded>6.WEBサイト確認</h2>
+<p>メモしているWEBサイトにアクセスし<br> code-handson!と表示されていることを確認できれば成功です<br><img src="img/6753bbfc545a019f.png"> ↓<br><img src="img/e6f32c0255030f9b.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="整理" duration="5">
+        <h2 is-upgraded>1.構成図（再度掲載）</h2>
+<p class="image-container"><img src="img/beecfa2597cd4dbe.png"></p>
+<h2 is-upgraded>2.整理</h2>
+<p>CodeStarで自動作成したので、実感が少ないかと思いますが、今回利用するAWSサービスの利用は完了しました。<br> ここからは各サービスを一つずつ作成しながら同様の機能を構築していきます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="IAM" duration="10">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → IAM → ロール → 「ロールの作成」ボタン押下</p>
+<h2 is-upgraded>2.ロールの作成(ユースケース)</h2>
+<p>以下を設定し、「次のステップ：アクセス権限」ボタンを押下</p>
+<ul>
+<li>信頼されたエンティティの種類を選択:AWSサービス</li>
+<li>ユースケースの選択:CodeBuild <img src="img/145729dbd9500cc2.png"></li>
+</ul>
+<h2 is-upgraded>3.ロールの作成(ポリシー)</h2>
+<p>以下ポリシーを設定し、「次のステップ：タグ」ボタンを押下</p>
+<ul>
+<li>AmazonEC2FullAccess</li>
+<li>AWSCodeCommitFullAccess</li>
+<li>AmazonS3FullAccess</li>
+<li>AWSCodeDeployFullAccess</li>
+<li>AWSCodeBuildAdminAccess</li>
+<li>AWSCodePipeline_FullAccess</li>
+</ul>
+<h2 is-upgraded>4.ロールの作成(タグ)</h2>
+<p>「次のステップ：タグ」ボタンを押下</p>
+<h2 is-upgraded>5.ロールの作成(確認)</h2>
+<p>以下を設定し、「ロールの作成」ボタンを押下</p>
+<ul>
+<li>ロール名:code-handson2 <img src="img/9ea1480491b1397f.png"></li>
+</ul>
+<h2 is-upgraded>6.ロールの検索</h2>
+<p>検索バーで「code-handson2」と入力し、クリックする <img src="img/8546296611f30eed.png"></p>
+<h2 is-upgraded>7.信頼環境の更新</h2>
+<p>信頼環境TABをクリックし、続いて、「信頼関係の編集」ボタンを押下</p>
+<h2 is-upgraded>8.信頼環境の更新内容</h2>
+<p>更新後の内容で更新し、「信頼ポリシーの更新」ボタン押下 <strong>更新前</strong></p>
+<pre><code>{
+  &#34;Version&#34;: &#34;2012-10-17&#34;,
+  &#34;Statement&#34;: [
+    {
+      &#34;Effect&#34;: &#34;Allow&#34;,
+      &#34;Principal&#34;: {
+        &#34;Service&#34;: &#34;codebuild.amazonaws.com&#34;
+      },
+      &#34;Action&#34;: &#34;sts:AssumeRole&#34;
+    }
+  ]
+}
+</code></pre>
+<p><strong>更新後</strong></p>
+<pre><code>{
+  &#34;Version&#34;: &#34;2008-10-17&#34;,
+  &#34;Statement&#34;: [
+    {
+      &#34;Effect&#34;: &#34;Allow&#34;,
+      &#34;Principal&#34;: {
+        &#34;Service&#34;: [
+          &#34;codepipeline.amazonaws.com&#34;,
+          &#34;codebuild.amazonaws.com&#34;,
+          &#34;codedeploy.amazonaws.com&#34;,
+          &#34;events.amazonaws.com&#34;
+        ]
+      },
+      &#34;Action&#34;: &#34;sts:AssumeRole&#34;
+    }
+  ]
+}
+</code></pre>
+<p><strong>更新結果</strong><img src="img/631a2b85231a1141.png"></p>
+<h2 is-upgraded>9.ロールの検索</h2>
+<p>CodeStarで作成されたEC2にアタッチされたロール「CodeStarWorker-code-handson-WebApp」を 検索バーで検索し、クリックする <img src="img/1780b8e61e6cd641.png"></p>
+<h2 is-upgraded>10.信頼環境の更新</h2>
+<p>アクセス権限TABをクリックし、続いて、「ポリシーをアタッチします」ボタンを押下</p>
+<h2 is-upgraded>11.アクセス権限をアタッチする</h2>
+<p>以下ポリシーを設定し、「ポリシーのアタッチ」ボタンを押下</p>
+<ul>
+<li>AmazonS3FullAccess</li>
+</ul>
+<p>↓ 結果<br><img src="img/c5301a768180c570.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="S3" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → S3 → 「バケットを作成」ボタンを押下</p>
+<h2 is-upgraded>2.バケットを作成</h2>
+<p>CodeBuildのアーティファクト先となるバケットを作成する<br> 以下を設定し、「バケットを作成」ボタンを押下</p>
+<ul>
+<li>バケット名:任意で世界中で一意となる名前を設定<br></li>
+<li>例：cloudbuild-{名前}-{日付}</li>
+<li>具体例：cloudbuild-shigeruoda-20210521 <img src="img/a44651ca11f16d03.png"></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CodeCommit" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → CodeCommit → 「リポジトリを作成」ボタンを押下</p>
+<h2 is-upgraded>2.リポジトリを作成</h2>
+<p>以下を設定し、「作成」ボタンを押下</p>
+<ul>
+<li>リポジトリ名:code-handson2</li>
+</ul>
+<p class="image-container"><img src="img/ff686e746a269d5b.png"></p>
+<h2 is-upgraded>3.URLのクローン</h2>
+<p>画面右上の「URLのクローン」ボタン⇨HTTPSのクローン<br> アドレスがコピーされるので、メモ帳などに貼り付け<br> 手順書通りであるなら、以下となります</p>
+<pre><code>https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/code-handson2  
+</code></pre>
+<p class="image-container"><img src="img/9c6bf309c5c286fd.png"></p>
+<h2 is-upgraded>4.画面遷移</h2>
+<p>マネージメントコンソール → AWS Cloud9 → code-handson → 「Open IDE」ボタン押下</p>
+<h2 is-upgraded>5.git設定を追加</h2>
+<p>Cloud9で新しいCodeCommitと連携します。<br> CodeCommitの手順書と違う名前で作成している場合には置き換えをお願いします。</p>
+<pre><code>cd ~/environment
+pwd
+git clone https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/code-handson2
+ls -l 
+</code></pre>
+<p class="image-container"><img src="img/f83eacf71908aa7f.png"></p>
+<h2 is-upgraded>6.codeをコピー</h2>
+<p>code-handsonの内容をcode-handson2にコピーします。<br> 手順書と違う名前で作成している場合には置き換えをお願いします。</p>
+<pre><code>cd ~/environment
+pwd
+cp -pr ./code-handson/* ./code-handson2/
+ls -l ./code-handson2/
+</code></pre>
+<p class="image-container"><img src="img/6ace48fba01c2970.png"></p>
+<h2 is-upgraded>7.index.htmlを開く</h2>
+<p>/home/ec2-user/environment/code-handson2/webpage/index.htmlを開きます。<br> code-handsonディレクトリではないので注意<br>  <img src="img/811c4728cd6fcd76.png"></p>
+<h2 is-upgraded>8.index.htmlを変更</h2>
+<p>61行目の「code-handson!」を別の値に変更。<br> ここの例では「code-handson2!!2!!」に変更し、ヘッダのFile⇨Saveで保存。</p>
+<p><strong>変更前</strong></p>
+<pre><code>&lt;div class=&#34;text&#34;&gt;
+    &lt;h1&gt;code-handson!&lt;/h1&gt;
+    &lt;h2&gt;You just created an HTML5 web application&lt;/h2&gt;
+&lt;/div&gt;
+</code></pre>
+<p><strong>変更後</strong></p>
+<pre><code>&lt;div class=&#34;text&#34;&gt;
+    &lt;h1&gt;code-handson2!!2!!&lt;/h1&gt;
+    &lt;h2&gt;You just created an HTML5 web application&lt;/h2&gt;
+&lt;/div&gt;
+</code></pre>
+<h2 is-upgraded>9.変更内容をCodeCommitへ反映</h2>
+<p>変更内容をCodeCommitへ範囲します。</p>
+<pre><code>cd ~/environment/code-handson2
+git add .
+git commit -m &#34;first commit to code-handson2&#34;
+git push
+</code></pre>
+<p class="image-container"><img src="img/1e5407f837c80f7a.png"></p>
+<h2 is-upgraded>10.画面遷移</h2>
+<p>マネージメントコンソール → CodeCommit → code-handson2<br> CodeCommitに反映されていることを確認<br>  <img src="img/9eff91bd1f54aff3.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CodeBuild" duration="10">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → CodeBuild → 「ビルドプロジェクトを作成する」ボタンを押下</p>
+<h2 is-upgraded>2.ビルドプロジェクトを作成する</h2>
+<p>以下を設定し、「ビルドプロジェクトを作成する」ボタンを押下<br><strong>プロジェクトの設定</strong></p>
+<ul>
+<li>プロジェクト名:code-handson2</li>
+</ul>
+<p><strong>ソース</strong></p>
+<ul>
+<li>ソースプロバイダー:AWS CodeCommit</li>
+<li>リポジトリ:code-handson2</li>
+<li>リファレンスタイプ:ブランチ</li>
+<li>ブランチ:master</li>
+</ul>
+<p><strong>環境</strong></p>
+<ul>
+<li>環境イメージ:マネージド型イメージ</li>
+<li>オペレーティングシステム:Amazon Linux2</li>
+<li>ランタイム:Standard</li>
+<li>イメージ:aws/codebuild/amazonlinux2-x86_64-standard:3.0</li>
+<li>イメージのバージョン:aws/codebuild/amazonlinux2-x86_64-standard:3.0-21.04.23</li>
+<li>環境タイプ:Linux</li>
+<li>サービスロール:既存のサービスロール</li>
+<li>ロールのARN</li>
+<li>ロール名:code-handson2</li>
+<li>AWS CodeBuild にこのサービスロールの編集を許可し、このビルドプロジェクトでの使用を可能にする:OFF</li>
+</ul>
+<p><strong>Buildspec</strong></p>
+<ul>
+<li>ビルド仕様:buildspecファイルを使用する</li>
+</ul>
+<p><strong>アーティファクト</strong></p>
+<ul>
+<li>タイプ:Amazon S3</li>
+<li>バケット名:先ほど作成したS3バケット名を選択</li>
+<li>アーティファクトのパッケージ化:Zip</li>
+</ul>
+<p><strong>ログ</strong></p>
+<ul>
+<li>CloudWatch Logs:OFF</li>
+</ul>
+<p class="image-container"><img src="img/d72520a16cfb57d4.png">  <img src="img/db959586561d69a6.png">  <img src="img/7fd6d4a2598a8a80.png">  <img src="img/4142b1b97b61de60.png">  <img src="img/29701c798d1227f6.png">  <img src="img/2cb5dc28bbb30db3.png"></p>
+<h2 is-upgraded>3.buildspec.ymlの中身確認</h2>
+<p>buildspec.ymlを確認します。<br> buildspec.ymlはビルド仕様を記述するファイルです。<br> 仕様についての詳細はこちらを確認下さい<br><a href="https://docs.aws.amazon.com/ja_jp/codebuild/latest/userguide/build-spec-ref.html" target="_blank">https://docs.aws.amazon.com/ja_jp/codebuild/latest/userguide/build-spec-ref.html</a></p>
+<pre><code>version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+  post_build:
+    commands:
+
+      # Do not remove this statement. This command is required for AWS CodeStar projects.
+      # Update the AWS Partition, AWS Region, account ID and project ID in the project ARN in template-configuration.json file so AWS CloudFormation can tag project resources.
+      - sed -i.bak &#39;s/\$PARTITION\$/&#39;${PARTITION}&#39;/g;s/\$AWS_REGION\$/&#39;${AWS_REGION}&#39;/g;s/\$ACCOUNT_ID\$/&#39;${ACCOUNT_ID}&#39;/g;s/\$PROJECT_ID\$/&#39;${PROJECT_ID}&#39;/g&#39; template-configuration.json
+
+artifacts:
+  files:
+    - &#39;**/*&#39;
+    - &#39;template-configuration.json&#39;
+</code></pre>
+<p><strong>version<br></strong> buildspec のバージョンを表します。0.2 を使用することをお勧めします。</p>
+<p><strong>phases<br></strong> ビルドの各段階で CodeBuild が実行するコマンドを表します。</p>
+<p><strong>phases/install<br></strong> インストール時に CodeBuild が実行するコマンドがあれば、ここに記載します。</p>
+<p><strong>phases/install/runtime-versions<br></strong> ランタイムバージョンを指定することが出来ます。<br> このハンズオンでは「java: corretto11」を指定しています。</p>
+<p><strong>phases/post_build<br></strong> ビルドの後に CodeBuild が実行するコマンドがあれば、ここに記載します。<br> このハンズオンでtemplate-configuration.jsonファイルを更新して、CloudFormationがタグを付けれるようにしています。<br> CodeStar用のコマンドです</p>
+<p><strong>artifacts<br></strong> CodeBuild がビルド出力を見つけることができる場所</p>
+<p><strong>artifacts/files<br></strong> ビルド環境でのビルド出力アーティファクトを含む場所を示します<br> このハンズオンでは以下ファイルをアーティファクトします。</p>
+<ul>
+<li>&#39;*<em>/</em>‘はすべてのファイルを再帰的に示します</li>
+<li>‘template-configuration.json&#39;はこの１ファイルを示します</li>
+</ul>
+<h2 is-upgraded>4.ビルドを開始</h2>
+<p>「ビルドを開始」ボタンを押下<br> 設定されたビルド処理が正常終了することを確認<br> 正常終了後にアーティファクトのアップロード場所のリンクをクリックすると、S3に保存されたアーティファクトを確認することが出来ます。</p>
+<p><img src="img/4db3b8b61a2c2d60.png">  ↓ 処理後  <img src="img/b4b23d1cd49c9756.png">  ↓ ビルドの詳細TAB ⇨ アーティファクト ⇨ アーティファクトのアップロード場所 ⇨ リンクをクリック  <img src="img/17ba375270c295ee.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CodeDeploy" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → CodeDeploy → 左メニューで開始方法</p>
+<h2 is-upgraded>2.アプリケーションの作成</h2>
+<p>以下を設定し、「アプリケーションの作成」ボタンを押下</p>
+<ul>
+<li>アプリケーション名:code-handson2</li>
+<li>コンピューティングプラットフォーム:EC2/オンプレミス <img src="img/9cf4edb3ee9a8a3.png"></li>
+</ul>
+<h2 is-upgraded>3.画面遷移</h2>
+<p>デプロイグループTAB ⇨ 「デプロイグループの作成」ボタンを押下</p>
+<h2 is-upgraded>4.デプロイグループの作成</h2>
+<p>以下を設定し、「デプロイグループの作成」ボタンを押下</p>
+<p><strong>デプロイグループ名</strong></p>
+<ul>
+<li>デプロイグループ名の入力:code-handson2</li>
+</ul>
+<p><strong>サービスロール</strong></p>
+<ul>
+<li>サービスロールの入力:code-handson2</li>
+</ul>
+<p><strong>デプロイタイプ</strong></p>
+<ul>
+<li>アプリケーションのデプロイ方法を選択する:インプレース</li>
+</ul>
+<p><strong>環境設定</strong></p>
+<ul>
+<li>Amazon EC2 インスタンス:ON</li>
+<li>タググループ キー:Name</li>
+<li>タググループ 値:code-handson-WebApp</li>
+</ul>
+<p><strong>AWS Systems Manager を使用したエージェント設定</strong></p>
+<ul>
+<li>AWS CodeDeploy エージェントのインストール:今すぐ更新し、更新をスケジュール</li>
+</ul>
+<p><strong>デプロイ設定</strong></p>
+<ul>
+<li>デプロイ設定:CodeDeployDefault.AllAtOnce</li>
+</ul>
+<p><strong>Load balancer</strong></p>
+<ul>
+<li>ロードバランシングを有効にする:OFF <img src="img/d5f19378cd4c267b.png"><img src="img/2c6f4868b8c27fc9.png"><img src="img/6dffe76b1ebe67de.png"></li>
+</ul>
+<h2 is-upgraded>5.画面遷移</h2>
+<p>「デプロイの作成」ボタンを押下</p>
+<h2 is-upgraded>6.デプロイの作成</h2>
+<p>以下を設定し、「デプロイの作成」ボタンを押下 <strong>デプロイ設定</strong></p>
+<ul>
+<li>デプロイグループ:code-handson2</li>
+<li>リビジョンタイプ:アプリケーションは Amazon S3 に格納されています</li>
+<li>リビジョンの場所:s3://{作成したバケット名}/code-handson2</li>
+<li>リビジョンファイルの種類:.zip</li>
+</ul>
+<p><strong>追加のデプロイ動作設定</strong></p>
+<ul>
+<li>コンテンツオプション:コンテンツの上書き <img src="img/25703c1810a203df.png"><img src="img/9c8a66d9ff1f4b63.png"></li>
+</ul>
+<h2 is-upgraded>7.デプロイの実施</h2>
+<p>デプロイ処理が自動的に開始されます。<br> ここまでの設定が正しい場合には正常終了します。<br> 異常終了する場合にはView eventsでのログを確認下さい。<br>  <img src="img/c2cf359063c15dce.png">  <img src="img/285fb1022c463721.png"> ↓ View eventsをクリック<br> エラーログはこちらを確認  <img src="img/c213eff6f319924f.png"></p>
+<h2 is-upgraded>8.ブラウザでの確認</h2>
+<p>CodeStarで作成したブラウザにアクセスしてみましょう<br> 「code-handson2!!2!!」と表示されているかと思います。  <img src="img/aa06de2399f81a9f.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CodePipline" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → CodePipeline → 「パイプラインを作成する」ボタン押下</p>
+<h2 is-upgraded>2.パイプラインの設定を選択する</h2>
+<p>以下を設定し、「次に」ボタンを押下</p>
+<p><strong>パイプラインの設定</strong></p>
+<ul>
+<li>パイプライン名:code-handson2</li>
+<li>サービスロール:既存のサービスロール</li>
+<li>ロールのARN:arn:aws:iam::[AWSアカウント]:role/service-role/code-handson2</li>
+</ul>
+<p><strong>高度な設定</strong></p>
+<ul>
+<li>アーティファクトストア:カスタムロケーション</li>
+<li>バケット:[みなさんのS3バケット名]</li>
+<li>暗号化キー:デフォルトのAWSマネージド型キー <img src="img/c8d38d1e367e54a7.png"></li>
+</ul>
+<h2 is-upgraded>3.ソースステージを追加する</h2>
+<p>以下を設定し、「次に」ボタンを押下</p>
+<p><strong>ソース</strong></p>
+<ul>
+<li>ソースプロバイダー:AWS CodeCommit</li>
+<li>リポジトリ名:code-handson2</li>
+<li>ブランチ名:master</li>
+<li>検出オプションを変更する:Amazon CloudWatch Events（推奨）</li>
+<li>出力アーティファクト形式:CodePipeline のデフォルト <img src="img/8f7409f24bb93ec3.png"></li>
+</ul>
+<h2 is-upgraded>4.ビルドステージを追加する</h2>
+<p>以下を設定し、「次に」ボタンを押下</p>
+<p><strong>ソース</strong></p>
+<ul>
+<li>プロバイダーを構築する:AWS CodeBuild</li>
+<li>リージョン:アジアパシフィック（東京）</li>
+<li>プロジェクト名:code-handson2</li>
+<li>ビルドタイプ:単一ビルド <img src="img/5173121d14ebeb4f.png"></li>
+</ul>
+<h2 is-upgraded>5.デプロイステージを追加する</h2>
+<p>以下を設定し、「次に」ボタンを押下</p>
+<p><strong>デプロイ</strong></p>
+<ul>
+<li>プロバイダーを構築する:AWS CodeDeploy</li>
+<li>リージョン:アジアパシフィック（東京）</li>
+<li>アプリケーション名:code-handson2</li>
+<li>デプロイグループ:code-handson2 <img src="img/fb5a9713024e74ac.png"></li>
+</ul>
+<h2 is-upgraded>6.レビュー</h2>
+<p>「パイプラインを作成」ボタン押下</p>
+<h2 is-upgraded>7.パイプインの正常終了確認</h2>
+<p>処理が自動的に流れるので、Source、Build、Deployが正常終了することを確認して下さい  <img src="img/53498ba86f5d34a1.png">  <img src="img/ce6f0cb7d5b24886.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Cloud9でWEBサイトを変更させる２" duration="5">
+        <h2 is-upgraded>1.画面遷移</h2>
+<p>マネージメントコンソール → AWS Cloud9 → code-handson → 「Open IDE」ボタン押下</p>
+<h2 is-upgraded>2.index.htmlを開く</h2>
+<p>/home/ec2-user/environment/code-handson2/webpage/index.htmlを開きます。</p>
+<h2 is-upgraded>3.index.htmlを変更</h2>
+<p>61行目の「code-handson2!!2!!」を別の値に変更。<br> ここの例では「code-handson End!!!」に変更し、ヘッダのFile⇨Saveで保存。</p>
+<p><strong>変更前</strong></p>
+<pre><code>&lt;div class=&#34;text&#34;&gt;
+    &lt;h1&gt;code-handson2!!2!!&lt;/h1&gt;
+    &lt;h2&gt;You just created an HTML5 web application&lt;/h2&gt;
+&lt;/div&gt;
+</code></pre>
+<p><strong>変更後</strong></p>
+<pre><code>&lt;div class=&#34;text&#34;&gt;
+    &lt;h1&gt;code-handson End!!!&lt;/h1&gt;
+    &lt;h2&gt;You just created an HTML5 web application&lt;/h2&gt;
+&lt;/div&gt;
+</code></pre>
+<h2 is-upgraded>4.変更内容をCodeCommitへ反映</h2>
+<p>変更内容をCodeCommitへ範囲します。</p>
+<pre><code>cd ~/environment/code-handson2
+git add .
+git commit -m &#34;end commit&#34;
+git push
+
+</code></pre>
+<h2 is-upgraded>5.画面遷移</h2>
+<p>マネージメントコンソール → CodePipeline → code-handson2<br> gitpushをトリガーにCodePipelineが稼働し、<br> Source、Build、Deployが正常終了していることを確認下さい</p>
+<h2 is-upgraded>6.WEBサイト確認</h2>
+<p>サイトにcode-handson End!!!と表示されていることを確認できれば成功です<br>  <img src="img/b47963e87439c517.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="締め処理" duration="10">
+        <h2 is-upgraded>1.終わり</h2>
+<p>ここまででハンズオンが終わりです。<br> とりあえず開発環境を作りたいのであれば、CodeStarでベースを作成し<br> 既存環境にCICD環境を構築する場合には個々に設定することになります。</p>
+<h2 is-upgraded>2.環境削除</h2>
+<p>以下の削除をお願いします。<br><strong>CodeStar</strong></p>
+<ul>
+<li>code-handson ⇨ 削除進捗はCloudFormationで確認(5分程度) ⇨ IAM理由でエラーになる</li>
+</ul>
+<p><strong>CloudFomation</strong></p>
+<ul>
+<li>awscodestar-code-handson ⇨ WebAppRoleのチェックボックスをONにして削除</li>
+</ul>
+<p><strong>IAM ロール</strong></p>
+<ul>
+<li>code-handson2</li>
+<li>CodeStarWorker-code-handson-CloudFormation</li>
+<li>CodeStarWorker-code-handson-WebApp</li>
+<li>cwe-role-ap-northeast-1-code-handson2</li>
+</ul>
+<p><strong>IAM ポリシー</strong></p>
+<ul>
+<li>start-pipeline-execution-ap-northeast-1-code-handson2</li>
+</ul>
+<p><strong>CodeCommit</strong></p>
+<ul>
+<li>code-handson2</li>
+</ul>
+<p><strong>CodeBuild</strong></p>
+<ul>
+<li>code-handson2</li>
+</ul>
+<p><strong>CodePipeline</strong></p>
+<ul>
+<li>code-handson2</li>
+</ul>
+<p><strong>S3</strong></p>
+<ul>
+<li>aws-codestar-ap-northeast-1-{アカウントID}</li>
+<li>aws-codestar-ap-northeast-1-{アカウントID}-code-handson-pipe</li>
+<li>ご自身で作成されたバケット</li>
+</ul>
+<p><strong>EC2 キーペア</strong></p>
+<ul>
+<li>code-handson</li>
+</ul>
+<p><strong>VPC</strong></p>
+<ul>
+<li>code-handson</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
